@@ -1,1 +1,1 @@
-= form.uploader_field(field.method_name, field.html_attributes.merge(sortable: true))
+= form.uploader_field(field.method_name, field.html_attributes.merge(sortable: field.sortable, ra_field: field).merge(field.config))
