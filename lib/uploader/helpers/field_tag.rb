@@ -39,6 +39,10 @@ module Uploader
       def object_name
         @options[:object_name]
       end
+
+      def ra_field
+        @options[:ra_field]
+      end
       
       def multiple?
         @object.fileupload_multiple?(method_name)
@@ -58,6 +62,10 @@ module Uploader
 
       def sortable?
         @options[:sortable] == true
+      end
+
+      def confirm_delete?
+        @options[:confirm_delete] == true
       end
       
       def klass
