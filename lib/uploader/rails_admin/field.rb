@@ -7,6 +7,14 @@ module RailsAdmin::Config::Fields::Types
       {}
     end
 
+    register_instance_option(:sortable) do
+      true
+    end
+
+    register_instance_option(:editable) do
+      true
+    end
+
     register_instance_option(:partial) do
       :form_rails_uploader
     end
