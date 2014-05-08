@@ -3,7 +3,7 @@
 {% for (var i=0, file; file=o.files[i]; i++) { %}
   <div id="asset_{%=file.id%}" class="attach_item template-download">
     <div class="buttons-panel">
-      <a href="#" class="del_btn delete" data-type="DELETE" data-url="/uploader/attachments/{%=file.public_token%}?klass=<%= field.klass %>"></a>
+      <a href="#" class="del_btn delete" data-type="DELETE" data-confirm_delete="<%= field.confirm_delete? ? I18n.t('uploader.confirm_delete') : '' %>" data-url="/uploader/attachments/{%=file.public_token%}?klass=<%= field.klass %>"></a>
     </div>
     <div class="thumbnail preview">
       <a href="{%=file.url%}" download="{%=file.filename%}">
@@ -15,6 +15,10 @@
         <a href="{%=file.url%}" download="{%=file.filename%}">{%=file.filename%}</a>
       </div>
       <div class="fileWeight">{%=o.formatFileSize(file.size)%}</div>
+      <% if authorized?(:edit, nil, field.klass) && field.ra_field.try('editable') -%>
+        <select style="display:none;"><option selected value={%=file.id%}></option></select>
+        <a style="margin-top:5px;" href="#" data-link="<%= raw edit_path(model_name: field.klass.to_param.underscore, modal: true, id: '__ID__') %>" class="btn btn-info update false"><i class="icon-pencil icon-white"></i> Edit</a>
+      <% end -%>
     </div>
   </div>
 {% } %}
