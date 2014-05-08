@@ -1,32 +1,31 @@
 <%= content_tag(:div, :id => field.id, :class => "uploader-dnd-area") do -%>
   <%= hidden_field(field.object_name, :fileupload_guid, :object => field.object) if field.object.new_record? %>
   
-  <div class="uploader-files"></div>
-  
-	<div class="uploader-dnd-hints">  
-	  <span class="uploader-button gray fileinput-button">
+    <div class="uploader-files"></div>
+    <div class="uploader-dnd-hints">
+      <span class="uploader-button gray fileinput-button">
       <span><%= I18n.t('uploader.button') %></span>
-      <%= fields_for field.object do |f| -%>
-	      <%= f.fields_for field.method_name, field.klass.new do |m| -%>
+        <%= fields_for field.object do |f| -%>
+          <%= f.fields_for field.method_name, field.klass.new do |m| -%>
           <%= m.file_field(:data, field.input_html) %>
-	      <% end -%>
-	    <% end -%>
-    </span>
-    
-	  <div class="uploader-dnd-hint">
-		  <%= I18n.t('uploader.or') %><span><%= I18n.t('uploader.drop') %></span>
-	  </div>
-	</div>
+          <% end -%>
+        <% end -%>
+      </span>
+
+      <div class="uploader-dnd-hint">
+          <%= I18n.t('uploader.or') %><span><%= I18n.t('uploader.drop') %></span>
+      </div>
+    </div>
 	
 	<%= render :partial => "uploader/#{field.theme}/upload", :locals => {:field => field} %>
-  <%= render :partial => "uploader/#{field.theme}/download", :locals => {:field => field} %>
-  <%= render :partial => "uploader/#{field.theme}/sortable", :locals => {:field => field} if field.sortable? %>
+    <%= render :partial => "uploader/#{field.theme}/download", :locals => {:field => field} %>
+    <%= render :partial => "uploader/#{field.theme}/sortable", :locals => {:field => field} if field.sortable? %>
   
 	<script type="text/javascript">
     $(function() {
-      var uploader, container;
+      var uploader, container, edit_url;
       container = $("#<%= field.id %> div.uploader-files");
-      
+
       $('#<%= field.id %> input[type="file"]').each(function(){
         $(this).fileupload({
           dataType: 'json',
@@ -37,7 +36,25 @@
           filesContainer: container,
           namespace: 'uploader',
           uploadTemplateId: 'template-upload-<%= field.klass %>',
-          downloadTemplateId: 'template-download-<%= field.klass %>'
+          downloadTemplateId: 'template-download-<%= field.klass %>',
+          always: function (e, data) {
+              remoteForm();
+          },
+          destroy: function (e, data) {
+              var that = $(this).data('blueimp-fileupload') || $(this).data('fileupload');
+              if (data.confirm_delete.length && !confirm(data.confirm_delete)) {
+                  return false;
+              }
+              $.ajax(data).done(function () {
+                  that._transition(data.context).done(
+                      function () {
+                          $(this).remove();
+                          that._adjustMaxNumberOfFiles(1);
+                          that._trigger('destroyed', e, data);
+                      }
+                  );
+              });
+          },
         });
         
         <% if field.exists? -%>
@@ -46,6 +63,14 @@
             ._renderDownload(<%=raw field.values.sort_by {|s| s.sort }.map(&:to_jq_upload).to_json %>)
             .appendTo(container);
         <% end -%>
+
+        var remoteForm = function(){
+            container.find('.attach_item').not('.remoted').each(function(e){
+                $(this).addClass('remoted').remoteForm();
+            });
+        };
+
+        remoteForm();
       });
     });
   </script>
