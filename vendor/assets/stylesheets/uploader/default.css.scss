@@ -81,10 +81,11 @@
 	border: 1px dotted transparent;
 }
 .uploader-button.gray {
-	background: #f4f4f4;
+  background: #f4f4f4;
   border: solid 1px #dbdbdb;
-	color: #616161;
-	text-shadow: none;
+  color: #616161;
+  text-shadow: none;
+  line-height: 30px;
 }
 .uploader-button.gray:hover {
   background: #f3f3f3;
