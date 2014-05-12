@@ -6,7 +6,7 @@ module Uploader
 
     module Mongoid
       def self.included(base)
-        base.send :include, Uploader::Fileuploads
+        base.send :extend, Uploader::Fileuploads::SingletonMethods
       end
 
       def self.include_root_in_json
