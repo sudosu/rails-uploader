@@ -181,6 +181,20 @@ This is only working in Formtastic and FormBuilder:
 # the i18n lookup key would be en.formtastic.delete_confirmations.picture
 ```
 
+# RailsAdmin Integration
+``` ruby
+    rails_admin do
+        edit do
+          ...
+          field :pictures, :rails_uploader do
+            config confirm_delete: true
+            editable true # default
+            sortable true # default
+          end
+        end
+    end
+```
+
 ## Contributing
 
 1. Fork it
