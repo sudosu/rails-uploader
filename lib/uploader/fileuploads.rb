@@ -38,10 +38,10 @@ module Uploader
         unless self.is_a?(ClassMethods)
           include InstanceMethods
           extend ClassMethods
-          
+
+          before_save :save_fileupload_guid, :if => -> {self.fileuploads_options[:save_fileupload_guid].present?}
           after_save :fileuploads_update, :if => :fileupload_changed?
-          after_initialize :save_fileupload_guid, :if => -> {self.fileuploads_options[:save_fileupload_guid].present?}
-          
+
           fileuploads_columns.each { |asset| accepts_nested_attributes_for asset, :allow_destroy => true }
         end
       end
@@ -49,10 +49,10 @@ module Uploader
     
     module ClassMethods
       # Update reflection klass by guid
-      def fileupload_update(record_id, guid, method)
-        fileupload_scope(method, guid).update_all(:assetable_id => record_id, :guid => guid)
+      def fileupload_update(guid, method, attrs)
+        fileupload_scope(method, guid).update_all({guid: guid}.merge(attrs))
       end
-      
+
       # Find asset(s) by guid
       def fileupload_find(method, guid)
         query = fileupload_scope(method, guid)
@@ -87,12 +87,12 @@ module Uploader
     module InstanceMethods
       # Generate unique key
       def fileupload_guid
-        @fileupload_guid ||= Uploader.guid
+        @fileupload_guid = self[:fileupload_guid] || Uploader.guid
       end
       
       def fileupload_guid=(value)
         @fileupload_changed = true unless value.blank? || value == fileupload_guid
-        @fileupload_guid = value.blank? ? nil : value
+        @fileupload_guid = self[:fileupload_guid] = value.blank? ? nil : value
       end
       
       def fileupload_changed?
@@ -120,13 +120,12 @@ module Uploader
       
         def fileuploads_update
           fileuploads_columns.each do |method|
-            self.class.fileupload_update(id, fileupload_guid, method)
+            self.class.fileupload_update(fileupload_guid, method, assetable_id: id)
           end
         end
 
         def save_fileupload_guid
-          self[:fileupload_guid] = fileupload_guid if self[:fileupload_guid].blank?
-          @fileupload_guid = self[:fileupload_guid] || fileupload_guid
+          self[:fileupload_guid] = fileupload_guid
         end
     end
   end
