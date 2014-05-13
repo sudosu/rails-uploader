@@ -39,7 +39,7 @@ module Uploader
           include InstanceMethods
           extend ClassMethods
 
-          before_save :save_fileupload_guid, :if => -> {self.fileuploads_options[:save_fileupload_guid].present?}
+          before_save :save_fileupload_guid, :if => :save_fileupload_guid?
           after_save :fileuploads_update, :if => :fileupload_changed?
 
           fileuploads_columns.each { |asset| accepts_nested_attributes_for asset, :allow_destroy => true }
@@ -87,12 +87,13 @@ module Uploader
     module InstanceMethods
       # Generate unique key
       def fileupload_guid
-        @fileupload_guid = self[:fileupload_guid] || Uploader.guid
+        @fileupload_guid ||= self[:fileupload_guid] || Uploader.guid
       end
       
       def fileupload_guid=(value)
         @fileupload_changed = true unless value.blank? || value == fileupload_guid
-        @fileupload_guid = self[:fileupload_guid] = value.blank? ? nil : value
+        @fileupload_guid = value.blank? ? nil : value
+        self[:fileupload_guid] = @fileupload_guid if save_fileupload_guid?
       end
       
       def fileupload_changed?
@@ -114,6 +115,10 @@ module Uploader
       
       def fileuploads_columns
         self.class.fileuploads_columns
+      end
+
+      def save_fileupload_guid?
+        self.fileuploads_options[:save_fileupload_guid] === true
       end
       
       protected
