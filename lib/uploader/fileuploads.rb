@@ -7,6 +7,7 @@ module Uploader
     module Mongoid
       def self.included(base)
         base.send :extend, Uploader::Fileuploads::SingletonMethods
+        base.send :field, :fileupload_guid, type: String
       end
 
       def self.include_root_in_json
@@ -39,6 +40,7 @@ module Uploader
           extend ClassMethods
           
           after_save :fileuploads_update, :if => :fileupload_changed?
+          after_initialize :save_fileupload_guid, :if => -> {self.fileuploads_options[:save_fileupload_guid].present?}
           
           fileuploads_columns.each { |asset| accepts_nested_attributes_for asset, :allow_destroy => true }
         end
@@ -48,7 +50,7 @@ module Uploader
     module ClassMethods
       # Update reflection klass by guid
       def fileupload_update(record_id, guid, method)
-        fileupload_scope(method, guid).update_all(:assetable_id => record_id, :guid => nil)
+        fileupload_scope(method, guid).update_all(:assetable_id => record_id, :guid => guid)
       end
       
       # Find asset(s) by guid
@@ -89,7 +91,7 @@ module Uploader
       end
       
       def fileupload_guid=(value)
-        @fileupload_changed = true unless value.blank?
+        @fileupload_changed = true unless value.blank? || value == fileupload_guid
         @fileupload_guid = value.blank? ? nil : value
       end
       
@@ -120,6 +122,11 @@ module Uploader
           fileuploads_columns.each do |method|
             self.class.fileupload_update(id, fileupload_guid, method)
           end
+        end
+
+        def save_fileupload_guid
+          self[:fileupload_guid] = fileupload_guid if self[:fileupload_guid].blank?
+          @fileupload_guid = self[:fileupload_guid] || fileupload_guid
         end
     end
   end
