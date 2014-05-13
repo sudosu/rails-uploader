@@ -18,6 +18,10 @@ module RailsAdmin::Config::Fields::Types
     register_instance_option(:partial) do
       :form_rails_uploader
     end
+    
+    register_instance_option :allowed_methods do
+      @abstract_model.model_name.constantize.fileuploads_options[:save_fileupload_guid] ? [method_name, :fileupload_guid] : [method_name]
+    end
 
     def scope_type
       # Use association name if existent
